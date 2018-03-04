@@ -9,4 +9,4 @@ listToTable f m n xs = "{" ++ f ++ "\\begin{tabular}{|" ++ intersperse '|' (repl
 alert xs = "\\textcolor{red}{"++xs++"}"
 
 
-drawBinaryTable fo xs ys f (x',y') = "{" ++ fo ++ "\\begin{tabular}{c|" ++ replicate (length ys) 'c' ++ "}\n" ++ (" & " ++ (concat $ intersperse " & " $ map show ys)) ++ "\\\\\n\\hline\n" ++ (concat $ intersperse "\\\\\n" [show x ++ " & " ++ concat (intersperse "&" [if (x,y)==(x',y') then alert (show $ f x y) else show (f x y)  | y <- ys]) | x <- xs]) ++ "\n\\end{tabular}}"
+drawBinaryTable sfx sfy sff fo xs ys f (x',y') = "{" ++ fo ++ "\\begin{tabular}{c|" ++ replicate (length ys) 'c' ++ "}\n" ++ (" & " ++ (concat $ intersperse " & " $ map sfy ys)) ++ "\\\\\n\\hline\n" ++ (concat $ intersperse "\\\\\n" [sfx x ++ " & " ++ concat (intersperse "&" [if (x,y)==(x',y') then alert (sff $ f x y) else sff (f x y)  | y <- ys]) | x <- xs]) ++ "\n\\end{tabular}}"

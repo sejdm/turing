@@ -1,4 +1,4 @@
-module TuringTape (Tape (..), tapeFromList, shift, readAtHead, writeAtHead, Direction (..), blankChar, leftOfHead, headOfTape, rightOfHead, tapeToList, whileNotBlank) where
+module TuringTape (Tape, tapeFromList, shift, readAtHead, writeAtHead, Direction (..), blankChar, leftOfHead, headOfTape, rightOfHead, tapeToList, whileNotBlank) where
 
 import Data.List
 import Control.DeepSeq
@@ -14,7 +14,7 @@ blankChar (Tape _ _ x) = x -- To know what was used as the blank character on th
 whileNotBlank t = leftOfHead t ++ (takeWhile (/= (blankChar t)) (headOfTape t : rightOfHead t))
 
 instance (Show a, Eq a) => Show (Tape a) where
-  show t = show (leftOfHead t) ++ show [headOfTape t] ++ (show (takeWhile (/= (blankChar t)) (rightOfHead t)))
+  show = show . whileNotBlank
 
 
 tapeFromList x xs = (Tape [] (xs ++ repeat x) x) -- x is the blank symbol. Head on first element.
@@ -33,4 +33,4 @@ shift L (Tape (x:xs) ys c) = Tape xs (x:ys) c
 
 -- NFData
 instance (NFData a, Eq a) => NFData (Tape a) where
-  rnf (Tape xs ys b) = rnf xs `deepseq` rnf (takeWhile (/=b) ys) `deepseq` ()
+  rnf (Tape xs ys b) = b `seq` rnf xs `deepseq` rnf (takeWhile (/=b) ys) `deepseq` ()

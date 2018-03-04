@@ -61,17 +61,18 @@ interactiveShowSnaps (x:xs) = system "clear" >> print x
 
 showFrame (m, n) qs as f ac re (q', tape) = "\n\\begin{frame}\n" ++ "\n{\\rm \\bf Current State: }"
   ++ show q' ++ "\\\\\n{\\rm \\bf Character under head: }" ++ show y ++ "\\\\{\\rm \\bf Current Status: }" ++  (if q' == ac  then "\\textcolor{green}{Halted (accepted)}" else (if q' == re then alert "Halted (rejected)" else "Computing")) ++ "\n\\\\\\vspace{0.5cm}"
-  ++ (drawBinaryTable "" (filter (/=re) $ filter (/=ac) qs) as f (q', y)) ++ "\n\\vspace{0.5cm}\n\\\\~\\\\" ++ thetape ++ "\n\\end{frame}"
+  ++ (drawBinaryTable show (showB b) (texShow b) "" (filter (/=re) $ filter (/=ac) qs) as f (q', y)) ++ "\n\\vspace{0.5cm}\n\\\\~\\\\" ++ thetape ++ "\n\\end{frame}"
   where 
-        thetape = listToTable "\\tt\\footnotesize" m n (map showB (xs) ++ ((if y == b then alert "-" else alert (showB y)) : map showB ys))
-        showB x = if x == b then " " else show x
+        thetape = listToTable "\\tt\\footnotesize" m n (map (showB b) (xs) ++ (alert (showB b y) : map (showB b) ys))
         y = headOfTape tape
         ys = rightOfHead tape
         xs = leftOfHead tape
         b = blankChar tape
 
+showB b x = if x == b then "\\textvisiblespace" else show x
 
-
+texShow b (q, a, d) = "("++ show q ++ "," ++ showB b a ++ "," ++ show d ++ ")"
+--texShow _ = show
 makeBeamer (m, n) qs as f ac re p = do
   putStr "\\documentclass{beamer}\n \\usepackage{array}\n \\newcolumntype{C}{>{\\centering\\arraybackslash}p{0.3em}}\n\\begin{document}\\tt\n"
   mapM_ (putStrLn . showFrame (m, n) qs as f ac re) $ take (m*n) $ turingList f ac re p

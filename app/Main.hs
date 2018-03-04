@@ -8,7 +8,9 @@ data States = Q0 | Q1 | Q2 | Qa | Qr
   deriving (Eq, Show, Read, Enum, Bounded)
 
 data Alphabet = O | I | B | X
-  deriving (Eq, Show, Read, Enum, Bounded) 
+  deriving (Show, Eq, Read, Enum, Bounded) 
+
+  
 
 
 eg Q0 X = (Q1, X, R)
