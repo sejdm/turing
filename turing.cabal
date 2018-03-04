@@ -35,6 +35,8 @@ library
     , split
   exposed-modules:
       Turing
+    , Latexify
+    , TuringTape
   other-modules:
       Paths_turing
   default-language: Haskell2010

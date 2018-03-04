@@ -1,31 +1,31 @@
-module Turing (tapeFromList, shift, readAtHead, writeAtHead, Direction (..), blankChar, turingList, runTuring, makeBeamer, interactiveTuring) where
+module Turing (Turing, everything, makeMachine, turingToBeamer, turingExecute, turingInteractive) where
 
-import Data.List
-import Control.DeepSeq
 import System.IO
+import Control.DeepSeq
 import System.Process
-import System.Environment
-
-data Tape a = Tape [a] [a] a -- Left of head (reversed), head and right of head, blank symbol
-
-instance (Show a, Eq a) => Show (Tape a) where
-  show (Tape xs (y:ys) b) = show (reverse xs) ++ show [y] ++ (show (takeWhile (/=b) ys))
+import Latexify
+import TuringTape
 
 
-tapeFromList x xs = (Tape [] (xs ++ repeat x) x) -- x is the blank symbol. Head on first element.
+-- Turing (states, alphabet, blank symbol, transition function, initial state, accept state, reject state)
+newtype Turing q a = Turing ([q], [a], a, TuringFunction q a, q, q, q)
+makeMachine = Turing
 
-writeAtHead :: a -> Tape a -> Tape a
-writeAtHead x (Tape xs (y:ys) c) = Tape xs (x:ys) c
+everything :: (Bounded a, Enum a) => [a]
+everything = [ minBound .. maxBound ]
 
-readAtHead (Tape _ (y:ys) _) = y
+turingToBeamer m n (Turing (qs, as, x, f, q', ac, re)) t = makeBeamer (m, n) qs as f ac re (q', tapeFromList x t)
 
-data Direction = L | R deriving (Show)
+turingToSnapshots (Turing (_, _, x, f, q', ac, re)) t = turingList f ac re (q', tapeFromList x t)
 
-shift R (Tape xs (y:ys) c) = Tape (y:xs) ys c
-shift L t@(Tape [] _ _) = t
-shift L (Tape (x:xs) ys c) = Tape xs (x:ys) c
+turingExecute (Turing (_, _, x, f, q', ac, re)) t = runTuring f ac re (q', tapeFromList x t)
+
+turingInteractive m = interactiveShowSnaps . turingToSnapshots m
 
 
+
+
+-- Helper functions
 type TuringFunction state alph = state -> alph -> (state, alph, Direction) 
 type Snapshot state alph = (state, Tape alph)
 
@@ -38,53 +38,42 @@ turingList f ac re = (\(as, bs) -> as ++ [head bs])
 
 
 
-
--- NFData
-instance (NFData a, Eq a) => NFData (Tape a) where
-  rnf (Tape xs ys b) = rnf xs `deepseq` rnf (takeWhile (/=b) ys) `deepseq` ()
-
-
+-- To evaluate the last element of a list of snapshots without a space leak
 deepLast [x] = x
 deepLast (x:xs) = x `deepseq` deepLast xs
 
 
+-- More efficient than evaluating the last element of a list of snapshots
 runTuring :: Eq q => TuringFunction q a -> q -> q -> (q, Tape a) -> (q, Tape a)
 runTuring f ac re a@(q, t) | q == ac || q == re = a
                            | otherwise = let (q', c, dir) = f q (readAtHead t) in
                                       runTuring f ac re (q', shift dir $ writeAtHead c t)
 
 
-interactiveTuring [] = return ()
-interactiveTuring (x:xs) = system "clear" >> print x
+
+interactiveShowSnaps [] = return ()
+interactiveShowSnaps (x:xs) = system "clear" >> print x
            >> hSetBuffering stdin NoBuffering
-           >> getChar >> interactiveTuring xs
-
-blankChar (Tape _ _ x) = x -- To know what was used as the blank character on the tape
-
+           >> getChar >> interactiveShowSnaps xs
 
 
 -- Beamerize
 
-showFrame (m, n) qs as f ac re (q', Tape xs (y:ys) b) = "\n\\begin{frame}\n" ++ "\n{\\rm \\bf Current State: }"
+showFrame (m, n) qs as f ac re (q', tape) = "\n\\begin{frame}\n" ++ "\n{\\rm \\bf Current State: }"
   ++ show q' ++ "\\\\\n{\\rm \\bf Character under head: }" ++ show y ++ "\\\\{\\rm \\bf Current Status: }" ++  (if q' == ac  then "\\textcolor{green}{Halted (accepted)}" else (if q' == re then alert "Halted (rejected)" else "Computing")) ++ "\n\\\\\\vspace{0.5cm}"
-  ++ (drawBinaryTable (filter (/=re) $ filter (/=ac) qs) as f (q', y)) ++ "\n\\vspace{0.5cm}\n\\\\~\\\\" ++ thetape ++ "\n\\end{frame}"
+  ++ (drawBinaryTable "" (filter (/=re) $ filter (/=ac) qs) as f (q', y)) ++ "\n\\vspace{0.5cm}\n\\\\~\\\\" ++ thetape ++ "\n\\end{frame}"
   where 
-        thetape = listToTable m n (map showB (reverse xs) ++ ((if y == b then alert "-" else alert (showB y)) : map showB ys))
+        thetape = listToTable "\\tt\\footnotesize" m n (map showB (xs) ++ ((if y == b then alert "-" else alert (showB y)) : map showB ys))
         showB x = if x == b then " " else show x
+        y = headOfTape tape
+        ys = rightOfHead tape
+        xs = leftOfHead tape
+        b = blankChar tape
 
 
-
-listToTable m n xs = "{\\tt\\footnotesize\\begin{tabular}{|" ++ intersperse '|' (replicate n 'C') ++ "|}\n\\hline\n " ++ (concat $ intersperse "\\\\\n\\hline \\hline\n" $ take m $ map (concat . intersperse " & ") $ chunksOf n xs) ++ "\\\\\\hline\n\n\\end{tabular}}"
-
-chunksOf n = takeWhile (not.null) . unfoldr (Just . splitAt n)
 
 makeBeamer (m, n) qs as f ac re p = do
   putStr "\\documentclass{beamer}\n \\usepackage{array}\n \\newcolumntype{C}{>{\\centering\\arraybackslash}p{0.3em}}\n\\begin{document}\\tt\n"
   mapM_ (putStrLn . showFrame (m, n) qs as f ac re) $ take (m*n) $ turingList f ac re p
 
   putStr "\n\\end{document}\n"
-
-alert xs = "\\textcolor{red}{"++xs++"}"
-
-
-drawBinaryTable xs ys f (x',y') = "\\begin{tabular}{c|" ++ replicate (length ys) 'c' ++ "}\n" ++ (" & " ++ (concat $ intersperse " & " $ map show ys)) ++ "\\\\\n\\hline\n" ++ (concat $ intersperse "\\\\\n" [show x ++ " & " ++ concat (intersperse "&" [if (x,y)==(x',y') then alert (show $ f x y) else show (f x y)  | y <- ys]) | x <- xs]) ++ "\n\\end{tabular}"
