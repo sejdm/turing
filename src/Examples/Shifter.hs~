@@ -1,0 +1,37 @@
+module Main where
+
+import Turing
+import TuringTape
+import System.Environment
+
+data States = Q0 | Q1 | Q2 | Qa | Qr
+  deriving (Eq, Show, Read, Enum, Bounded)
+
+data Alphabet = O | I | B | X
+  deriving (Show, Eq, Read, Enum, Bounded) 
+
+  
+eg Q0 X = (Q1, X, R)
+
+eg Q1 O = (Q1, O, R)
+eg Q1 I = (Q2, O, R)
+eg Q1 B = (Qa, O, L)
+
+eg Q2 O = (Q1, I, R)
+eg Q2 I = (Q2, I, R)
+eg Q2 B = (Qa, I, L)
+  
+eg Qa O = (Qa, O, L)
+eg Qa I = (Qa, I, L)
+eg Qa X = (Qr, X, L)
+  
+eg _ _ = (Qr, B, L)
+
+machine1 = makeMachine (everything, everything, B, eg, Q0, Qr, Qr)
+
+
+main :: IO ()
+main = do
+  as <- fmap (map read) getArgs
+
+  turingToBeamer 9 21 machine1 as

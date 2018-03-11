@@ -28,15 +28,25 @@ source-repository head
 library
   hs-source-dirs:
       src
+    , src/Examples
   build-depends:
       base >=4.7 && <5
     , deepseq
     , process
     , split
+    , containers
+    , gloss
   exposed-modules:
       Turing
     , Latexify
     , TuringTape
+    , TableParse
+    , UsingMap
+    , ToLatex
+    , Examples.All
+    , Examples.Shifter
+    , Examples.EvenLength
+    , Examples.PowerOfTwo
   other-modules:
       Paths_turing
   default-language: Haskell2010
@@ -52,6 +62,8 @@ executable turing-exe
     , deepseq
     , process
     , split
+    , containers
+    , gloss
   other-modules:
       Paths_turing
   default-language: Haskell2010
@@ -68,6 +80,8 @@ test-suite turing-test
     , deepseq
     , process
     , split
+    , containers
+    , gloss
   other-modules:
       Paths_turing
   default-language: Haskell2010
