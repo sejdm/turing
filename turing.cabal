@@ -43,6 +43,7 @@ library
     , TableParse
     , UsingMap
     , ToLatex
+    , TuringState
     , Examples.All
     , Examples.Shifter
     , Examples.EvenLength
