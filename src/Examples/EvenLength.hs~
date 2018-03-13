@@ -1,0 +1,20 @@
+module Examples.EvenLength (evenlength) where
+
+import Turing
+import TuringTape
+
+data States = Q0 | Q1 | Qh
+  deriving (Eq, Show, Read, Enum, Bounded)
+
+data Alphabet = A | B | E | O
+  deriving (Show, Eq, Read, Enum, Bounded) 
+
+  
+eg Q0 A = (Q1, A, R)
+eg Q0 B = (Qh, E, R)
+
+eg Q1 A = (Q0, A, R)
+eg Q1 B = (Qh, O, R)
+eg _ _ = (Qh, B, L)
+
+evenlength = makeMachine (everything, everything, B, eg, Q0, Qh, Qh)
