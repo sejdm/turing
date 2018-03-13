@@ -1,0 +1,3 @@
+| even? | A        | E | O | %       |
+| even  | odd, ,R  |   |   | acc,E,R |
+| odd   | even, ,R |   |   | re,O,R  |

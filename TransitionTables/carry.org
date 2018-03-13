@@ -1,0 +1,4 @@
+| carry | %        | I         | O        |
+|-------+----------+-----------+----------|
+| right | carry,,L | right,,R  | right,,R |
+| carry | acc,I,L  | carry,O,L | acc,I,L  |

@@ -1,0 +1,9 @@
+| equal? | O      | I      | X     | =     | %   |
+|--------+--------+--------+-------+-------+-----|
+| 0      | f,X,R  | f',X,R | 0,X,R | acc   |     |
+| f      | , ,R   | , ,R   | , ,R  | o,,R  |     |
+| o      | be,X,R | re     | o, ,R | re    |     |
+| f'     | , ,R   | , ,R   | , ,R  | o',,R |     |
+| o'     | re     | be,X,R | o',,R | re    |     |
+| be     | be,,L  | be,,L  | be,,L | bf,,L | acc |
+| bf     | bf,,L  | bf,,L  | 0,,R  | re    | acc |
